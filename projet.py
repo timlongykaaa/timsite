@@ -6,55 +6,58 @@ import pandas as pd
 from datetime import datetime, time
 
 
-data = pd.read_csv('/home/ec2-user/projetlinux/data1.csv', delimiter=';', header=None, names = ['price','date'])
-data['price'] = data['price'].str.replace('€', '')
-data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d %H:%M:%S')
-
-
-
-# Initialize the app
 app = dash.Dash(__name__)
 
-# Define the layout
+df = pd.read_csv('/home/ec2-user/projetlinux/data1.csv', delimiter=';', names=['Prix', 'Date'])
+df['Prix'] = df['Prix'].str.replace('€', '')
+df['Date'] = pd.to_datetime(df['Date'])
+
+
 app.layout = html.Div(children=[
-    html.H1(children='Graphique du prix de l\'Ethereum'),
-    dcc.Graph(id='ethereum-graph'),
-    dcc.Interval(id='graph-update', interval=1000*60*5, n_intervals=0)])
+    html.H1(children='Cours de l\'Ethereum'),
+
+    dcc.Graph(
+        id='example-graph',
+        figure={
+            'data': [
+                go.Scatter(
+                    x=df['Date'],
+                    y=df['Prix'],
+                    mode='lines'
+                )
+            ],
+            'layout': go.Layout(
+                xaxis={'title': 'Date'},
+                yaxis={'title': 'Prix'}
+            )
+        }
+    ),
+    dcc.Interval(
+        id='interval-component',
+        interval=5*60*1000, # in milliseconds
+        n_intervals=0
+    )
+])
 
 
-# Define the callback function to update the graph
-@app.callback(Output('ethereum-graph', 'figure'),
-              [Input('graph-update', 'n_intervals')])
+@app.callback(Output('example-graph', 'figure'),
+              [Input('interval-component', 'n_intervals')])
 
 
 def update_graph(n):
-    # Sélectionner les données les plus récentes
-    recent_data = data[data['date'] > (datetime.now() - pd.Timedelta(minutes=5))]
-    x = recent_data['date']
-    y = recent_data['price']
+    #lecture du fichier csv
+    df = pd.read_csv('/home/ec2-user/projetlinux/data1.csv', delimiter=';', names=['Prix', 'Date'])
+    df['Prix'] = df['Prix'].str.replace('€', '')
+    df['Date'] = pd.to_datetime(df['Date'])
+    #creation du graphique
+    fig = {'data': [go.Scatter(x=df['Date'], y=df['Prix'], mode='lines')],
+           'layout': go.Layout(xaxis ={'title':'Date'},yaxis = {'title' : 'Prix'})}
+    return fig
 
-    # Créer la figure pour le graphique
-    fig = {
-        'data': [{
-            'x': x,
-            'y': y,
-            'type': 'line',
-            'name': 'Prix de l\'Ethereum'
-        }],
-        'layout': {
-            'title': 'Prix de l\'Ethereum en fonction du temps',
-            'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Prix'}
-        },
-    } 
-    return fig   
+#go.Layout(xaxis=dict(range=[min(df['Date']), max(df['Date'])]), yaxis=dict(range=[min(df['Prix']), max(df['Prix'])]))
 
-
-# Run the app
 if __name__ == '__main__':
     app.run_server(debug=True, host = "0.0.0.0", port = 9400)
-
-
 
 
 
