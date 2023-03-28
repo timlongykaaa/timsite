@@ -14,7 +14,7 @@ df['Date'] = pd.to_datetime(df['Date'])
 
 
 app.layout = html.Div(children=[
-    html.H1(children='Cours de l\'Ethereum'),
+    html.H1(children="Welcome to Tim's webpage, find below the Ethereum live price",style={'textAlign': 'center'} ),
 
     dcc.Graph(
         id='example-graph',
